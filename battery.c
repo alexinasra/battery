@@ -4,8 +4,6 @@
 
 #define PROJECT_NAME "battery"
 
-#define CAPACITY_FILE "/sys/class/power_supply/BAT0/capacity"
-
 int battery_capacity();
 char* battery_status();
 
@@ -38,6 +36,13 @@ char* battery_status() {
 		return NULL;
 	}
 	fclose(status_fd);
+	// Find the newline character
+    	char *newline_ptr = strchr(status, '\n');
+
+    	// If a newline is found, replace it with a null terminator
+    	if (newline_ptr != NULL) {
+        	*newline_ptr = '\0';
+    	}
 	return strdup(status);
 }
 
@@ -46,10 +51,9 @@ int battery_capacity() {
 
     FILE *cap_fd = NULL;
 
-    if ((cap_fd = fopen(CAPACITY_FILE, "r")) == NULL) {
+    if ((cap_fd = fopen("/sys/class/power_supply/BAT0/capacity", "r")) == NULL) {
 		perror("Error openning file");
-		perror(CAPACITY_FILE);
-	return -1;
+		return -1;
     }
     
     if ((fscanf(cap_fd, "%d", &battery_cap) != 1)) {
